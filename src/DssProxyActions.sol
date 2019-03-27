@@ -108,11 +108,11 @@ contract DssProxyActions {
     }
 
     // Public methods
-    function ethJoin_join(address apt, bytes32 urn) public payable {
-        GemJoinLike(apt).gem().deposit.value(msg.value)();
-        GemJoinLike(apt).gem().approve(address(apt), msg.value);
-        GemJoinLike(apt).join(urn, msg.value);
-    }
+    // function ethJoin_join(address apt, bytes32 urn) public payable {
+    //     GemJoinLike(apt).gem().deposit.value(msg.value)();
+    //     GemJoinLike(apt).gem().approve(address(apt), msg.value);
+    //     GemJoinLike(apt).join(urn, msg.value);
+    // }
 
     function gemJoin_join(address apt, bytes32 urn, uint wad) public payable {
         GemJoinLike(apt).gem().transferFrom(msg.sender, address(this), wad);
@@ -187,15 +187,15 @@ contract DssProxyActions {
         ManagerLike(manager).quit(vat, cdp, dst);
     }
 
-    function lockETH(
-        address manager,
-        address ethJoin,
-        address vat,
-        uint cdp
-    ) public payable {
-        ethJoin_join(ethJoin, ManagerLike(manager).getUrn(cdp));
-        frob(manager, vat, cdp, toInt(msg.value), 0);
-    }
+    // function lockETH(
+    //     address manager,
+    //     address ethJoin,
+    //     address vat,
+    //     uint cdp
+    // ) public payable {
+    //     ethJoin_join(ethJoin, ManagerLike(manager).getUrn(cdp));
+    //     frob(manager, vat, cdp, toInt(msg.value), 0);
+    // }
 
     function lockGem(
         address manager,
@@ -208,18 +208,18 @@ contract DssProxyActions {
         frob(manager, vat, cdp, toInt(wad), 0);
     }
 
-    function freeETH(
-        address manager,
-        address ethJoin,
-        address vat,
-        uint cdp,
-        uint wad
-    ) public {
-        frob(manager, vat, cdp, -toInt(wad), 0);
-        exit(manager, ethJoin, cdp, address(this), wad);
-        GemJoinLike(ethJoin).gem().withdraw(wad);
-        msg.sender.transfer(wad);
-    }
+    // function freeETH(
+    //     address manager,
+    //     address ethJoin,
+    //     address vat,
+    //     uint cdp,
+    //     uint wad
+    // ) public {
+    //     frob(manager, vat, cdp, -toInt(wad), 0);
+    //     exit(manager, ethJoin, cdp, address(this), wad);
+    //     GemJoinLike(ethJoin).gem().withdraw(wad);
+    //     msg.sender.transfer(wad);
+    // }
 
     function freeGem(
         address manager,
@@ -255,31 +255,31 @@ contract DssProxyActions {
         frob(manager, vat, cdp, 0, _getWipeDart(vat, urn, ManagerLike(manager).ilks(cdp)));
     }
 
-    function lockETHAndDraw(
-        address manager,
-        address ethJoin,
-        address daiJoin,
-        address vat,
-        uint cdp,
-        uint wadD
-    ) public payable {
-        bytes32 urn = ManagerLike(manager).getUrn(cdp);
-        ethJoin_join(ethJoin, urn);
-        frob(manager, vat, cdp, toInt(msg.value), _getDrawDart(vat, urn, ManagerLike(manager).ilks(cdp), wadD));
-        exit(manager, daiJoin, cdp, msg.sender, wadD);
-    }
+    // function lockETHAndDraw(
+    //     address manager,
+    //     address ethJoin,
+    //     address daiJoin,
+    //     address vat,
+    //     uint cdp,
+    //     uint wadD
+    // ) public payable {
+    //     bytes32 urn = ManagerLike(manager).getUrn(cdp);
+    //     ethJoin_join(ethJoin, urn);
+    //     frob(manager, vat, cdp, toInt(msg.value), _getDrawDart(vat, urn, ManagerLike(manager).ilks(cdp), wadD));
+    //     exit(manager, daiJoin, cdp, msg.sender, wadD);
+    // }
 
-    function openLockETHAndDraw(
-        address manager,
-        address ethJoin,
-        address daiJoin,
-        address vat,
-        bytes32 ilk,
-        uint wadD
-    ) public payable returns (uint cdp) {
-        cdp = ManagerLike(manager).open(ilk);
-        lockETHAndDraw(manager, ethJoin, daiJoin, vat, cdp, wadD);
-    }
+    // function openLockETHAndDraw(
+    //     address manager,
+    //     address ethJoin,
+    //     address daiJoin,
+    //     address vat,
+    //     bytes32 ilk,
+    //     uint wadD
+    // ) public payable returns (uint cdp) {
+    //     cdp = ManagerLike(manager).open(ilk);
+    //     lockETHAndDraw(manager, ethJoin, daiJoin, vat, cdp, wadD);
+    // }
 
     function lockGemAndDraw(
         address manager,
@@ -309,22 +309,22 @@ contract DssProxyActions {
         lockGemAndDraw(manager, gemJoin, daiJoin, vat, cdp, wadC, wadD);
     }
 
-    function wipeAndFreeETH(
-        address manager,
-        address ethJoin,
-        address daiJoin,
-        address vat,
-        uint cdp,
-        uint wadC,
-        uint wadD
-    ) public {
-        bytes32 urn = ManagerLike(manager).getUrn(cdp);
-        daiJoin_join(daiJoin, urn, wadD);
-        frob(manager, vat, cdp, -toInt(wadC), _getWipeDart(vat, urn, ManagerLike(manager).ilks(cdp)));
-        exit(manager, ethJoin, cdp, address(this), wadC);
-        GemJoinLike(ethJoin).gem().withdraw(wadC);
-        msg.sender.transfer(wadC);
-    }
+    // function wipeAndFreeETH(
+    //     address manager,
+    //     address ethJoin,
+    //     address daiJoin,
+    //     address vat,
+    //     uint cdp,
+    //     uint wadC,
+    //     uint wadD
+    // ) public {
+    //     bytes32 urn = ManagerLike(manager).getUrn(cdp);
+    //     daiJoin_join(daiJoin, urn, wadD);
+    //     frob(manager, vat, cdp, -toInt(wadC), _getWipeDart(vat, urn, ManagerLike(manager).ilks(cdp)));
+    //     exit(manager, ethJoin, cdp, address(this), wadC);
+    //     GemJoinLike(ethJoin).gem().withdraw(wadC);
+    //     msg.sender.transfer(wadC);
+    // }
 
     function wipeAndFreeGem(
         address manager,
