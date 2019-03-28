@@ -31,6 +31,19 @@ contract GemLike {
     function withdraw(uint) public;
 }
 
+contract STLike {
+    // ERC20 functions
+    function transfer(address,uint) public returns (bool);
+    function transferFrom(address,address,uint) public returns (bool);
+    // Security Token-specific functions
+    function transferWithData(address,uint256,bytes calldata) external returns (bool);
+    function transferFromWithData(address,address,uint256, bytes calldata dat) external returns (bool);
+    function canTransfer(address,uint256,bytes calldata) external returns (bool,uint256,bytes32);
+    function canTransferFrom(address,address,uint256,bytes calldata) external returns (bool,uint256,bytes32);
+
+    function controllerTransfer(address src, address dst, uint256 wad, bytes calldata dat, bytes calldata _operatorData) external returns (bool);
+}
+
 contract ManagerLike {
     function ilks(uint) public view returns (bytes32);
     function urns(uint) public view returns (address);
@@ -58,6 +71,11 @@ contract GemJoinLike {
     function gem() public returns (GemLike);
     function join(address, uint) public payable;
     function exit(address, uint) public;
+}
+
+contract STJoinLike {
+    function gem() public returns (STLike);
+    function join(bytes32, uint) public payable;
 }
 
 contract DaiJoinLike {
