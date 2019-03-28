@@ -76,6 +76,7 @@ contract GemJoinLike {
 contract STJoinLike {
     function gem() public returns (STLike);
     function join(bytes32, uint) public payable;
+    function exit(address, uint) public;
 }
 
 contract DaiJoinLike {
