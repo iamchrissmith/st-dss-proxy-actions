@@ -156,25 +156,25 @@ contract DssProxyActionsTest is DssDeployTestBase, ProxyCalls {
         (,artV) = vat.urns(ilk, urn);
     }
 
-    // function testCreateCDP() public {
-    //     uint cdp = this.open(address(manager), "ETH");
-    //     assertEq(cdp, 1);
-    //     assertEq(manager.lads(cdp), address(proxy));
-    // }
+    function testCreateCDP() public {
+        uint cdp = this.open(address(manager), "ETH");
+        assertEq(cdp, 1);
+        assertEq(manager.lads(cdp), address(proxy));
+    }
 
-    // function testGiveCDP() public {
-    //     uint cdp = this.open(address(manager), "ETH");
-    //     this.give(address(manager), cdp, address(123));
-    //     assertEq(manager.lads(cdp), address(123));
-    // }
+    function testGiveCDP() public {
+        uint cdp = this.open(address(manager), "ETH");
+        this.give(address(manager), cdp, address(123));
+        assertEq(manager.lads(cdp), address(123));
+    }
 
-    // function testGiveCDPAllowedUser() public {
-    //     uint cdp = this.open(address(manager), "ETH");
-    //     FakeUser user = new FakeUser();
-    //     this.allow(address(manager), cdp, address(user), true);
-    //     user.doGive(manager, cdp, address(123));
-    //     assertEq(manager.lads(cdp), address(123));
-    // }
+    function testGiveCDPAllowedUser() public {
+        uint cdp = this.open(address(manager), "ETH");
+        FakeUser user = new FakeUser();
+        this.allow(address(manager), cdp, address(user), true);
+        user.doGive(manager, cdp, address(123));
+        assertEq(manager.lads(cdp), address(123));
+    }
 
     // function testFlux() public {
     //     uint cdp = this.open(address(manager), "ETH");
@@ -298,72 +298,82 @@ contract DssProxyActionsTest is DssDeployTestBase, ProxyCalls {
         assertEq(art, 10 ether);
     }
 
-    // function testDrawAfterDrip() public {
-    //     this.file(address(jug), bytes32("COL"), bytes32("duty"), uint(1.05 * 10 ** 27));
-    //     hevm.warp(now + 1);
-    //     jug.drip("COL");
-    //     uint cdp = this.open(address(manager), "COL");
-    //     this.lockGem(address(manager), address(colJoin), cdp, 2 ether);
-    //     assertEq(dai.balanceOf(address(this)), 0);
-    //     this.draw(address(manager), address(daiJoin), cdp, 300 ether);
-    //     assertEq(dai.balanceOf(address(this)), 300 ether);
-    //     (, uint art) = vat.urns("COL", manager.urns(cdp));
-    //     assertEq(art, mul(300 ether, ONE) / (1.05 * 10 ** 27) + 1); // Extra wei due rounding
-    // }
+    function testDrawAfterDrip() public {
+        col.mint(5 ether);
+        this.file(address(jug), bytes32("COL"), bytes32("duty"), uint(1.05 * 10 ** 27));
+        hevm.warp(now + 1);
+        jug.drip("COL");
+        uint cdp = this.open(address(manager), "COL");
+        col.approve(address(proxy), 2 ether);
+        this.lockGem(address(manager), address(colJoin), cdp, 2 ether);
+        assertEq(dai.balanceOf(address(this)), 0);
+        this.draw(address(manager), address(daiJoin), cdp, 10 ether);
+        assertEq(dai.balanceOf(address(this)), 10 ether);
+        (, uint art) = vat.urns("COL", manager.urns(cdp));
+        assertEq(art, mul(10 ether, ONE) / (1.05 * 10 ** 27) + 1); // Extra wei due rounding
+    }
 
-    // function testWipe() public {
-    //     uint cdp = this.open(address(manager), "COL");
-    //     this.lockGem(address(manager), address(colJoin), cdp, 2 ether);
-    //     this.draw(address(manager), address(daiJoin), cdp, 300 ether);
-    //     dai.approve(address(proxy), 100 ether);
-    //     this.wipe(address(manager), address(daiJoin), cdp, 100 ether);
-    //     assertEq(dai.balanceOf(address(this)), 200 ether);
-    //     (, uint art) = vat.urns("COL", manager.urns(cdp));
-    //     assertEq(art, 200 ether);
-    // }
+    function testWipe() public {
+        col.mint(5 ether);
+        uint cdp = this.open(address(manager), "COL");
+        col.approve(address(proxy), 2 ether);
+        this.lockGem(address(manager), address(colJoin), cdp, 2 ether);
+        this.draw(address(manager), address(daiJoin), cdp, 30 ether);
+        dai.approve(address(proxy), 100 ether);
+        this.wipe(address(manager), address(daiJoin), cdp, 10 ether);
+        assertEq(dai.balanceOf(address(this)), 20 ether);
+        (, uint art) = vat.urns("COL", manager.urns(cdp));
+        assertEq(art, 20 ether);
+    }
 
-    // function testWipeAfterDrip() public {
-    //     this.file(address(jug), bytes32("COL"), bytes32("duty"), uint(1.05 * 10 ** 27));
-    //     hevm.warp(now + 1);
-    //     jug.drip("COL");
-    //     uint cdp = this.open(address(manager), "COL");
-    //     this.lockGem(address(manager), address(colJoin), cdp, 2 ether);
-    //     this.draw(address(manager), address(daiJoin), cdp, 300 ether);
-    //     dai.approve(address(proxy), 100 ether);
-    //     this.wipe(address(manager), address(daiJoin), cdp, 100 ether);
-    //     assertEq(dai.balanceOf(address(this)), 200 ether);
-    //     (, uint art) = vat.urns("COL", manager.urns(cdp));
-    //     assertEq(art, mul(200 ether, ONE) / (1.05 * 10 ** 27) + 1);
-    // }
+    function testWipeAfterDrip() public {
+        col.mint(5 ether);
+        this.file(address(jug), bytes32("COL"), bytes32("duty"), uint(1.05 * 10 ** 27));
+        hevm.warp(now + 1);
+        jug.drip("COL");
+        uint cdp = this.open(address(manager), "COL");
+        col.approve(address(proxy), 2 ether);
+        this.lockGem(address(manager), address(colJoin), cdp, 2 ether);
+        this.draw(address(manager), address(daiJoin), cdp, 30 ether);
+        dai.approve(address(proxy), 10 ether);
+        this.wipe(address(manager), address(daiJoin), cdp, 10 ether);
+        assertEq(dai.balanceOf(address(this)), 20 ether);
+        (, uint art) = vat.urns("COL", manager.urns(cdp));
+        assertEq(art, mul(20 ether, ONE) / (1.05 * 10 ** 27) + 1);
+    }
 
-    // function testWipeAllAfterDrip() public {
-    //     this.file(address(jug), bytes32("COL"), bytes32("duty"), uint(1.05 * 10 ** 27));
-    //     hevm.warp(now + 1);
-    //     jug.drip("ETH");
-    //     uint cdp = this.open(address(manager), "ETH");
-    //     this.lockGem(address(manager), address(colJoin), cdp, 2 ether);
-    //     this.draw(address(manager), address(daiJoin), cdp, 300 ether);
-    //     dai.approve(address(proxy), 300 ether);
-    //     this.wipe(address(manager), address(daiJoin), cdp, 300 ether);
-    //     (, uint art) = vat.urns("ETH", manager.urns(cdp));
-    //     assertEq(art, 0);
-    // }
+    function testWipeAllAfterDrip() public {
+        col.mint(5 ether);
+        this.file(address(jug), bytes32("COL"), bytes32("duty"), uint(1.05 * 10 ** 27));
+        hevm.warp(now + 1);
+        jug.drip("COL");
+        uint cdp = this.open(address(manager), "COL");
+        col.approve(address(proxy), 2 ether);
+        this.lockGem(address(manager), address(colJoin), cdp, 2 ether);
+        this.draw(address(manager), address(daiJoin), cdp, 10 ether);
+        dai.approve(address(proxy), 10 ether);
+        this.wipe(address(manager), address(daiJoin), cdp, 10 ether);
+        (, uint art) = vat.urns("COL", manager.urns(cdp));
+        assertEq(art, 0);
+    }
 
-    // function testWipeAllAfterDrip2() public {
-    //     this.file(address(jug), bytes32("COL"), bytes32("duty"), uint(1.05 * 10 ** 27));
-    //     hevm.warp(now + 1);
-    //     jug.drip("COL");
-    //     uint cdp = this.open(address(manager), "COL");
-    //     uint times = 30;
-    //     this.lockGem(address(manager), address(colJoin), cdp, 2 ether);
-    //     for (uint i = 0; i < times; i++) {
-    //         this.draw(address(manager), address(daiJoin), cdp, 300 ether);
-    //     }
-    //     dai.approve(address(proxy), 300 ether * times);
-    //     this.wipe(address(manager), address(daiJoin), cdp, 300 ether * times);
-    //     (, uint art) = vat.urns("COL", manager.urns(cdp));
-    //     assertEq(art, 0);
-    // }
+    function testWipeAllAfterDrip2() public {
+        col.mint(30 ether);
+        this.file(address(jug), bytes32("COL"), bytes32("duty"), uint(1.05 * 10 ** 27));
+        hevm.warp(now + 1);
+        jug.drip("COL");
+        uint cdp = this.open(address(manager), "COL");
+        col.approve(address(proxy), 30 ether);
+        uint times = 30;
+        this.lockGem(address(manager), address(colJoin), cdp, 30 ether);
+        for (uint i = 0; i < times; i++) {
+            this.draw(address(manager), address(daiJoin), cdp, 1 ether);
+        }
+        dai.approve(address(proxy), 1 ether * times);
+        this.wipe(address(manager), address(daiJoin), cdp, 1 ether * times);
+        (, uint art) = vat.urns("COL", manager.urns(cdp));
+        assertEq(art, 0);
+    }
 
     // // function testLockETHAndDraw() public {
     // //     uint cdp = this.open(address(manager), "ETH");
@@ -385,27 +395,27 @@ contract DssProxyActionsTest is DssDeployTestBase, ProxyCalls {
     // //     assertEq(address(this).balance, initialBalance - 2 ether);
     // // }
 
-    // function testLockGemAndDraw() public {
-    //     col.mint(5 ether);
-    //     uint cdp = this.open(address(manager), "COL");
-    //     col.approve(address(proxy), 2 ether);
-    //     assertEq(ink("COL", manager.urns(cdp)), 0);
-    //     assertEq(dai.balanceOf(address(this)), 0);
-    //     this.lockGemAndDraw(address(manager), address(colJoin), address(daiJoin), cdp, 2 ether, 10 ether);
-    //     assertEq(ink("COL", manager.urns(cdp)), 2 ether);
-    //     assertEq(dai.balanceOf(address(this)), 10 ether);
-    //     assertEq(col.balanceOf(address(this)), 3 ether);
-    // }
+    function testLockGemAndDraw() public {
+        col.mint(5 ether);
+        uint cdp = this.open(address(manager), "COL");
+        col.approve(address(proxy), 2 ether);
+        assertEq(ink("COL", manager.urns(cdp)), 0);
+        assertEq(dai.balanceOf(address(this)), 0);
+        this.lockGemAndDraw(address(manager), address(colJoin), address(daiJoin), cdp, 2 ether, 10 ether);
+        assertEq(ink("COL", manager.urns(cdp)), 2 ether);
+        assertEq(dai.balanceOf(address(this)), 10 ether);
+        assertEq(col.balanceOf(address(this)), 3 ether);
+    }
 
-    // function testOpenLockGemAndDraw() public {
-    //     col.mint(5 ether);
-    //     col.approve(address(proxy), 2 ether);
-    //     assertEq(dai.balanceOf(address(this)), 0);
-    //     uint cdp = this.openLockGemAndDraw(address(manager), address(colJoin), address(daiJoin), "COL", 2 ether, 10 ether);
-    //     assertEq(ink("COL", manager.urns(cdp)), 2 ether);
-    //     assertEq(dai.balanceOf(address(this)), 10 ether);
-    //     assertEq(col.balanceOf(address(this)), 3 ether);
-    // }
+    function testOpenLockGemAndDraw() public {
+        col.mint(5 ether);
+        col.approve(address(proxy), 2 ether);
+        assertEq(dai.balanceOf(address(this)), 0);
+        uint cdp = this.openLockGemAndDraw(address(manager), address(colJoin), address(daiJoin), "COL", 2 ether, 10 ether);
+        assertEq(ink("COL", manager.urns(cdp)), 2 ether);
+        assertEq(dai.balanceOf(address(this)), 10 ether);
+        assertEq(col.balanceOf(address(this)), 3 ether);
+    }
 
     // // function testWipeAndFreeETH() public {
     // //     uint cdp = this.open(address(manager), "ETH");
@@ -418,57 +428,59 @@ contract DssProxyActionsTest is DssDeployTestBase, ProxyCalls {
     // //     assertEq(address(this).balance, initialBalance - 0.5 ether);
     // // }
 
-    // function testWipeAndFreeGem() public {
-    //     col.mint(5 ether);
-    //     uint cdp = this.open(address(manager), "COL");
-    //     col.approve(address(proxy), 2 ether);
-    //     this.lockGemAndDraw(address(manager), address(colJoin), address(daiJoin), cdp, 2 ether, 10 ether);
-    //     dai.approve(address(proxy), 8 ether);
-    //     this.wipeAndFreeGem(address(manager), address(colJoin), address(daiJoin), cdp, 1.5 ether, 8 ether);
-    //     assertEq(ink("COL", manager.urns(cdp)), 0.5 ether);
-    //     assertEq(dai.balanceOf(address(this)), 2 ether);
-    //     assertEq(col.balanceOf(address(this)), 4.5 ether);
-    // }
+    function testWipeAndFreeGem() public {
+        col.mint(5 ether);
+        uint cdp = this.open(address(manager), "COL");
+        col.approve(address(proxy), 2 ether);
+        this.lockGemAndDraw(address(manager), address(colJoin), address(daiJoin), cdp, 2 ether, 10 ether);
+        dai.approve(address(proxy), 8 ether);
+        this.wipeAndFreeGem(address(manager), address(colJoin), address(daiJoin), cdp, 1.5 ether, 8 ether);
+        assertEq(ink("COL", manager.urns(cdp)), 0.5 ether);
+        assertEq(dai.balanceOf(address(this)), 2 ether);
+        assertEq(col.balanceOf(address(this)), 4.5 ether);
+    }
 
-    // function testPreventHigherDaiOnWipe() public {
-    //     uint cdp = this.open(address(manager), "COL");
-    //     // this.lockETHAndDraw.value(2 ether)(address(manager), address(ethJoin), address(daiJoin), cdp, 300 ether);
-    //     this.lockGemAndDraw(address(manager), address(colJoin), address(daiJoin), cdp, 2 ether, 300 ether);
+    function testPreventHigherDaiOnWipe() public {
+        col.mint(5 ether);
+        uint cdp = this.open(address(manager), "COL");
+        col.approve(address(proxy), 2 ether);
+        this.lockGemAndDraw(address(manager), address(colJoin), address(daiJoin), cdp, 2 ether, 30 ether);
 
-    //     weth.deposit.value(2 ether)();
-    //     weth.approve(address(colJoin), 2 ether);
-    //     colJoin.join(address(this), 2 ether);
-    //     vat.frob("COL", address(this), address(this), address(this), 1 ether, 150 ether);
-    //     vat.move(address(this), manager.urns(cdp), 150 ether);
+        col.mint(2 ether);
+        col.approve(address(colJoin), 2 ether);
+        colJoin.join(address(this), 2 ether);
+        vat.frob("COL", address(this), address(this), address(this), 1 ether, 15 ether);
+        vat.move(address(this), manager.urns(cdp), 15 ether);
 
-    //     dai.approve(address(proxy), 300 ether);
-    //     this.wipe(address(manager), address(daiJoin), cdp, 300 ether);
-    // }
+        dai.approve(address(proxy), 30 ether);
+        this.wipe(address(manager), address(daiJoin), cdp, 30 ether);
+    }
 
-    // function testHopeNope() public {
-    //     assertEq(vat.can(address(proxy), address(123)), 0);
-    //     this.hope(address(vat), address(123));
-    //     assertEq(vat.can(address(proxy), address(123)), 1);
-    //     this.nope(address(vat), address(123));
-    //     assertEq(vat.can(address(proxy), address(123)), 0);
-    // }
+    function testHopeNope() public {
+        assertEq(vat.can(address(proxy), address(123)), 0);
+        this.hope(address(vat), address(123));
+        assertEq(vat.can(address(proxy), address(123)), 1);
+        this.nope(address(vat), address(123));
+        assertEq(vat.can(address(proxy), address(123)), 0);
+    }
 
-    // function testQuit() public {
-    //     uint cdp = this.open(address(manager), "COL");
-    //     // this.lockETHAndDraw.value(1 ether)(address(manager), address(ethJoin), address(daiJoin), cdp, 50 ether);
-    //     this.lockGemAndDraw(address(manager), address(colJoin), address(daiJoin), cdp, 1 ether, 50 ether);
+    function testQuit() public {
+        col.mint(5 ether);
+        uint cdp = this.open(address(manager), "COL");
+        col.approve(address(proxy), 2 ether);
+        this.lockGemAndDraw(address(manager), address(colJoin), address(daiJoin), cdp, 2 ether, 30 ether);
 
-    //     assertEq(ink("COL", manager.urns(cdp)), 1 ether);
-    //     assertEq(art("COL", manager.urns(cdp)), 50 ether);
-    //     assertEq(ink("COL", address(proxy)), 0);
-    //     assertEq(art("COL", address(proxy)), 0);
+        assertEq(ink("COL", manager.urns(cdp)), 2 ether);
+        assertEq(art("COL", manager.urns(cdp)), 30 ether);
+        assertEq(ink("COL", address(proxy)), 0);
+        assertEq(art("COL", address(proxy)), 0);
 
-    //     this.hope(address(vat), address(manager));
-    //     this.quit(address(manager), cdp, address(proxy));
+        this.hope(address(vat), address(manager));
+        this.quit(address(manager), cdp, address(proxy));
 
-    //     assertEq(ink("COL", manager.urns(cdp)), 0);
-    //     assertEq(art("COL", manager.urns(cdp)), 0);
-    //     assertEq(ink("COL", address(proxy)), 1 ether);
-    //     assertEq(art("COL", address(proxy)), 50 ether);
-    // }
+        assertEq(ink("COL", manager.urns(cdp)), 0);
+        assertEq(art("COL", manager.urns(cdp)), 0);
+        assertEq(ink("COL", address(proxy)), 2 ether);
+        assertEq(art("COL", address(proxy)), 30 ether);
+    }
 }
