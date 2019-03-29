@@ -90,7 +90,7 @@ contract HopeLike {
     function nope(address) public;
 }
 
-contract DssProxyActions {
+contract DssStProxyActions {
     uint256 constant ONE = 10 ** 27;
 
     // Internal methods
